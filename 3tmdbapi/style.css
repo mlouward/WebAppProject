@@ -17,12 +17,12 @@ h1 {
   text-align: center;
 }
 
-#answer {
+.answer {
   text-align: center;
   margin: 1rem auto;
 }
 
-.movie-title {
+.movie-title, .actor-name{
   text-align: center;
   margin: 1rem auto;
 }

@@ -1,16 +1,23 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const movieInfos = document.getElementById('movie-infos');
-  fetch('https://api.themoviedb.org/3/search/movie?api_key=b6b0c5da479c996f45abfa80ab960607&language=en-US&query=Skyfall&page=1&include_adult=false')
+const submitAnswerButton = document.getElementById('submit-button');
+const answerField = document.getElementById(`input1`);
+const API_KEY = "b6b0c5da479c996f45abfa80ab960607";
+const movieInfos = document.getElementById('movie-infos1');
+const questionLabel = document.getElementById('question');
+
+document.addEventListener("DOMContentLoaded", loadFirstMovie)
+
+function loadFirstMovie() {
+  // search query with tmdb API for initial movie SkyFall
+  fetch(`https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&language=en-US&query=Skyfall&page=1&include_adult=false`)
     .then((response) => {
       if (response.status != 200) {
         throw new Error("Error " + response.status);
       }
-      return response.text();
+      return response.json();
     })
     .then((txt) => {
-      const text = JSON.parse(txt);
-      console.log(text);
-      const movie = text.results[0];
+      // Get first element of the list and use infos to display title, date, image
+      const movie = txt.results[0];
 
       const infos = document.createElement('h3');
       infos.innerHTML = `Title: ${movie.original_title}, released: ${movie.release_date}`;
@@ -21,44 +28,146 @@ document.addEventListener("DOMContentLoaded", () => {
 
       movieInfos.appendChild(infos);
       movieInfos.appendChild(poster);
+      // save the movie ID to check if the acotr/director is correct later
+      sessionStorage.setItem('movieID1', movie.id);
     });
+  checkActorDirector(1);
+  //checkMovie(2);
+}
 
-})
+function checkActorDirector(answerNb) {
+  questionLabel.innerHTML = "Name a director/actor of this movie";
+  // Set event listener for submit button
+  submitAnswerButton.addEventListener('click', _ => {
+    // case insensitive result
+    const answer = answerField.value.toLowerCase();
+    console.log(answer);
+    // get last movie ID from sessionStorage
+    const movie_id = sessionStorage.getItem(`movieID${answerNb}`)
+    checkAnswerActorDirector(answer, movie_id).then(result => {
+      console.log(result);
+      [rightAnswer, full_name, poster] = result;
+      // display message / actor infos if the answer is false / true
+      if (rightAnswer)
+        correctActorDirector(answerNb + 1, full_name, poster);
+      else
+        wrongAnswer()
+    })
+  });
+}
 
+function checkMovie(answerNb) {
+  // Save actor/director answer then clear answer box
+  const person = answerField.value;
+  answerField.value = "";
+  // Update question
+  questionLabel.innerHTML = `Name a movie where ${capitalize(person)} is the actor/director`;
+  submitAnswerButton.addEventListener('click', _ => {
+    // get answer from textbox
+    const answer = answerField.value.toLowerCase();
+    console.log(answer);
+    // Check if the answer is right (movie contains actor/director given as answer)
+    checkAnswerMovie(answer).then(result => {
+      console.log(result);
+      [rightAnswer, full_name, poster] = result;
+      if (rightAnswer === true)
+        correctActorDirector(answerNb + 1, full_name, poster);
+      else
+        wrongAnswer()
+    })
+  });
+}
 
-// search.onclick = function () {
-//   const query_string = encodeURIComponent(query.value.trim());
-//   const URL = `https://api.nytimes.com/svc/search/v2/articlesearch.json?q=${query_string}&api-key=seVkZHEef0VUe75NzQYWTpSuiprk7gjZ`;
-//   article_section.innerHTML = "";
-//   fetch(URL)
-//     .then((response) => {
-//       if (response.status != 200) {
-//         throw new Error("Error " + response.status);
-//       }
-//       return response.text();
-//     })
-//     .then((text) => {
-//       articles = JSON.parse(text).response.docs;
-//       for (const article of articles) {
-//         let node = document.createElement("div");
-//         node.class = "article-box";
+// Checks cast of a movie_id
+async function checkAnswerActorDirector(answer, movie_id) {
+  const response = await fetch(`https://api.themoviedb.org/3/movie/${movie_id}/credits?api_key=b6b0c5da479c996f45abfa80ab960607&language=en-US`);
+  if (response.status != 200) {
+    throw new Error("Error " + response.status);
+  }
+  const result_1 = await response.json();
+  for (const person of result_1.cast) {
+    if (person.name.toLowerCase() === answer && person.known_for_department == "Acting") {
+      sessionStorage.setItem('personID1', person.id);
+      return [true, person.original_name, person.profile_path];
+    }
+  };
+  for (const person of result_1.crew) {
+    if (person.name.toLowerCase() === answer && person.known_for_department == "Directing") {
+      sessionStorage.setItem('personID1', person.id);
+      return [true, person.original_name, person.profile_path];
+    }
+  };
+  return [false, "", ""];
+}
 
-//         let header = document.createElement("h2");
-//         header.innerHTML = article.headline.main;
-//         node.appendChild(header);
+// Checks movies of a personID 
+async function checkAnswerMovie(answer) {
+  const person_id = sessionStorage.getItem('personID1');
+  const movie_response = await fetch(`https://api.themoviedb.org/3/person/${person_id}/movie_credits?api_key=${API_KEY}&language=en-US`);
+  if (movie_response.status != 200) {
+    throw new Error("Error " + movie_response.status);
+  }
+  const result_1 = await movie_response.json();
+  console.log(result_1);
+  for (const movie of result_1.cast) {
+    if (movie.original_title.toLowerCase() === answer) {
+      sessionStorage.setItem('movieID1', movie.id); // ?
+      return [true, movie.original_title, movie.poster_path];
+    }
+  };
+  for (const movie of result_1.crew) {
+    if (movie.original_title.toLowerCase() === answer) {
+      sessionStorage.setItem('movieID1', movie.id); // ?
+      return [true, movie.original_title, movie.poster_path];
+    }
+  };
+  return [false, "", ""];
+}
 
-//         let date = document.createElement("p");
-//         date.innerHTML = article.pub_date.split("T")[0];
-//         node.appendChild(date);
+function correctActorDirector(answerNb, full_name, poster_path) {
+  // Remove "wrong answer" text if right answer
+  try {
+    const wrongText = document.getElementById('wrong-answer');
+    wrongText.remove();
+  } catch (error) {
+    console.log("no wrong answer");
+  }
+  // Add new div with actor/director infos
+  const actor_div = document.createElement('div');
 
-//         let image_txt = document.createElement("p");
-//         let image = document.createElement("img");
-//         image_txt.textContent = article.abstract;
-//         image.src = IMG_URL + article.multimedia[0].url;
-//         image_txt.prepend(image);
-//         node.appendChild(image_txt);
+  const infos = document.createElement('h3');
+  infos.innerHTML = `Name: ${full_name}`;
+  infos.classList.add('actor-name');
 
-//         article_section.appendChild(node);
-//       }
-//     });
-// };
+  const poster = document.createElement('img');
+  poster.src = `https://image.tmdb.org/t/p/w400${poster_path}`;
+
+  actor_div.appendChild(infos);
+  actor_div.appendChild(poster);
+
+  movieInfos.appendChild(actor_div);
+}
+
+function wrongAnswer() {
+  // Check if already wrong answer, then remove text and re-add it after
+  for (const node of movieInfos.childNodes) {
+    if (node.id === "wrong-answer") {
+      node.remove();
+      break;
+    }
+  }
+
+  const infos = document.createElement('p');
+
+  infos.id = "wrong-answer"
+  infos.style = "color: red; text-align: center;"
+  infos.innerHTML = "Sorry, this is not a right answer."
+
+  movieInfos.appendChild(infos);
+}
+
+function capitalize(string) {
+  return string.split(' ').map((word) => {
+    return word[0].toUpperCase() + word.substring(1);
+  }).join(" ");
+}
