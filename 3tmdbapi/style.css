@@ -17,6 +17,11 @@ h1 {
   text-align: center;
 }
 
+img {
+  display:block;
+  margin:auto;
+}
+
 .answer {
   text-align: center;
   margin: 1rem auto;
