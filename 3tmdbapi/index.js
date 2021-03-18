@@ -40,13 +40,13 @@ async function loadMovie(movie_id) {
 
       showMovieInfos(movie);
 
-      checkActorDirector(movie.original_title);
+      checkActorDirector(movie.title);
     });
 }
 
 function showMovieInfos(movie) {
   const infos = document.createElement('h3');
-  infos.innerHTML = `Title: ${movie.original_title}, released: ${movie.release_date}`;
+  infos.innerHTML = `Title: ${movie.title}, released: ${movie.release_date}`;
   infos.classList.add('movie-title');
 
   const poster = document.createElement('img');
@@ -85,7 +85,7 @@ async function checkActorDirector(title) {
     const movie_id = sessionStorage.getItem(`movieID1`);
     await checkAnswerActorDirector(answer, movie_id).then(result => {
       [rightAnswer, full_name, poster] = result;
-      console.log(rightAnswer);
+      console.log(result);
       // display message / actor infos if the answer is false / true
       if (rightAnswer)
         correctActorDirector(full_name, poster);
@@ -102,13 +102,13 @@ async function checkAnswerActorDirector(answer, movie_id) {
   for (const person of result_1.cast) {
     if (person.name.toLowerCase() === answer && person.known_for_department == "Acting") {
       sessionStorage.setItem('personID1', person.id);
-      return [true, person.original_name, person.profile_path];
+      return [true, person.name, person.profile_path];
     }
   };
   for (const person of result_1.crew) {
     if (person.name.toLowerCase() === answer && person.known_for_department == "Directing") {
       sessionStorage.setItem('personID1', person.id);
-      return [true, person.original_name, person.profile_path];
+      return [true, person.name, person.profile_path];
     }
   };
   return [false, "", ""];
@@ -119,7 +119,7 @@ async function checkMovie() {
   const person = answerField.value;
   answerField.value = "";
   // Update question
-  questionLabel.innerHTML = `Give the <span style="font-weight: bold">original</span> name of a movie where<br>
+  questionLabel.innerHTML = `Give the english title of a movie where<br>
    <span style="font-style: italic">${capitalize(person)}</span> is the actor/director`;
   submitAnswerButton.addEventListener('click', submitAnswerButton.m = async function () {
     // get answer from textbox
@@ -206,9 +206,9 @@ function wrongAnswer() {
   infos.innerHTML = `Sorry, this is not a right answer, or you already guessed this movie<br>
   Your final score is ${questionNb}`
   const hs = localStorage.getItem('tmdbQuizzHighScore') || 0;
-  console.log("no highscore");
   if (questionNb > hs) {
     infos.innerHTML += `<br>Congratulations, this is your new High Score!`
+    localStorage.setItem('tmdbQuizzHighScore', questionNb);
     setHighScore();
   }
   infos.innerHTML += `<br>You can continue playing from here, but your score will be reset and you can't reuse movies`;
