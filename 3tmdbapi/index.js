@@ -1,15 +1,28 @@
 const submitAnswerButton = document.getElementById('submit-button');
 const answerField = document.getElementById(`input1`);
+const highScoreField = document.getElementById('high-score');
 const API_KEY = "b6b0c5da479c996f45abfa80ab960607";
 const INITIAL_MOVIE = 37724
 const movieInfos = document.getElementById('movie-infos1');
 const questionLabel = document.getElementById('question');
-let alreadyGuessedMovies = [];
+let alreadyGuessedMovies = [`${INITIAL_MOVIE}`];
 let questionNb = 0;
 let gameRunning = true;
 
+// Adds the highscore at the start of the game
+setHighScore()
+
 // Initial call to the function with default movie when page is loaded
 document.addEventListener("DOMContentLoaded", loadMovie(INITIAL_MOVIE));
+
+
+// Press Enter to submit answer
+answerField.addEventListener("keyup", function (event) {
+  if (event.code === 'Enter') {
+    event.preventDefault();
+    submitAnswerButton.click();
+  }
+});
 
 async function loadMovie(movie_id) {
   // search query with tmdb API for initial movie SkyFall
@@ -23,11 +36,11 @@ async function loadMovie(movie_id) {
     })
     .then((movie) => {
       // increment questionNb
-      questionNb++;
+      // questionNb++;
 
       showMovieInfos(movie);
 
-      checkActorDirector();
+      checkActorDirector(movie.original_title);
     });
 }
 
@@ -61,12 +74,12 @@ function showActorInfos(full_name, poster_path) {
   movieInfos.appendChild(actor_div);
 }
 
-async function checkActorDirector() {
-  questionLabel.innerHTML = "Name a director/actor of this movie";
+async function checkActorDirector(title) {
+  questionLabel.innerHTML = `Give the full name of a director/actor in <span style="font-style:italic">${title}</span>`;
   // Set event listener for submit button
   submitAnswerButton.addEventListener('click', submitAnswerButton.ad = async function () {
     // case insensitive result
-    const answer = answerField.value.toLowerCase();
+    const answer = answerField.value.toLowerCase().trim();
     console.log(answer);
     // get last movie ID from sessionStorage
     const movie_id = sessionStorage.getItem(`movieID1`);
@@ -106,10 +119,11 @@ async function checkMovie() {
   const person = answerField.value;
   answerField.value = "";
   // Update question
-  questionLabel.innerHTML = `Name a movie where ${capitalize(person)} is the actor/director`;
+  questionLabel.innerHTML = `Give the <span style="font-weight: bold">original</span> name of a movie where<br>
+   <span style="font-style: italic">${capitalize(person)}</span> is the actor/director`;
   submitAnswerButton.addEventListener('click', submitAnswerButton.m = async function () {
     // get answer from textbox
-    const answer = answerField.value.toLowerCase();
+    const answer = answerField.value.toLowerCase().trim();
     // Check if the answer is right (movie contains actor/director given as answer)
     await checkAnswerMovie(answer).then(result => {
       console.log(result);
@@ -189,8 +203,16 @@ function wrongAnswer() {
   const infos = document.createElement('p');
 
   infos.id = "wrong-answer"
-  infos.style = "color: red; text-align: center;"
-  infos.innerHTML = "Sorry, this is not a right answer, or you already guessed this movie."
+  infos.innerHTML = `Sorry, this is not a right answer, or you already guessed this movie<br>
+  Your final score is ${questionNb}`
+  const hs = localStorage.getItem('tmdbQuizzHighScore') || 0;
+  console.log("no highscore");
+  if (questionNb > hs) {
+    infos.innerHTML += `<br>Congratulations, this is your new High Score!`
+    setHighScore();
+  }
+  infos.innerHTML += `<br>You can continue playing from here, but your score will be reset and you can't reuse movies`;
+  questionNb = 0;
 
   movieInfos.appendChild(infos);
 }
@@ -199,4 +221,9 @@ function capitalize(string) {
   return string.split(' ').map((word) => {
     return word[0].toUpperCase() + word.substring(1);
   }).join(" ");
+}
+
+function setHighScore() {
+  const hs = localStorage.getItem('tmdbQuizzHighScore') || 0;
+  highScoreField.innerHTML = `High Score: ${hs}`;
 }
