@@ -1,0 +1,76 @@
+html, body {
+  height: 100%;
+}
+
+html {
+  display: table;
+  margin: auto;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+body {
+  display: table-cell;
+  vertical-align: top;
+  text-align: center;
+}
+
+hr {
+  border: 0;
+  height: 2px;
+  width: 120%;
+  background: #999;
+  background-image: linear-gradient(to right, #ccc, #333, #ccc);
+  margin: 0 auto 1rem auto;
+  transform: translate(-8%);
+}
+
+.questions, .create {
+  display: flex;
+  flex-direction: column;
+  margin: 2rem;
+}
+
+.card {
+  width: 90%;
+  min-height: 5rem;
+  height: fit-content;
+  margin: 1.5rem auto;
+  background-color: aliceblue;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .6);
+  border-radius: 5px;
+  transition: background-color .1s;
+  transition: transform .1s;
+}
+
+.card:hover {
+  transform: translateY(2px);
+  background-color: azure;
+}
+
+#createButton {
+  font-size: large;
+  position: relative;
+  display: block;
+  margin: auto;
+  width: 90%;
+  padding: 1rem 2rem;
+  border-width: 0;
+  border-radius: 2px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .6);
+  background-color: rgb(110, 190, 143);
+  color: whitesmoke;
+  transition: background-color .2s;
+}
+
+#createButton:hover {
+  background-color: rgb(79, 139, 104);
+  outline: none;
+  transform: translateY(2px);
+}
+
+#createButton:active {
+  background-color: rgb(66, 116, 87);
+  box-shadow: 0 2px #999;
+  transform: translateY(2px);
+  outline: none;
+}
