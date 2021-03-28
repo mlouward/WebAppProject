@@ -24,6 +24,21 @@ hr {
   transform: translate(-8%);
 }
 
+.create {
+  border: 2px solid rgb(110, 190, 143);
+  padding: 1rem;
+  border-radius: 5px;
+}
+
+.create input {
+  margin: 1rem 2rem;
+}
+
+.create label {
+  text-align: left;
+  margin: 0 2rem;
+}
+
 .questions, .create {
   display: flex;
   flex-direction: column;
@@ -51,7 +66,7 @@ hr {
   font-size: large;
   position: relative;
   display: block;
-  margin: auto;
+  margin: 1rem auto;
   width: 90%;
   padding: 1rem 2rem;
   border-width: 0;

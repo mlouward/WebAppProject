@@ -12,9 +12,13 @@
 <body>
   <h1>Video Games Quizz - Admin Page</h1>
   <hr>
-  <div class="create">
-    <button id="createButton">Create a Question</button>
-  </div>
+  <form action="/create" class="create" method="POST">
+    <label for="imageInput">Image URL:</label>
+    <input type="text" name="image" id="imageInput">
+    <label for="questionInput">Question:</label>
+    <input type="text" name="question" id="questionInput">
+    <button type="submit" id="createButton">Create a Question</button>
+  </form>
   <div class="questions">
     <div class="card"></div>
     <div class="card"></div>
