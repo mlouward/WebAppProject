@@ -10,9 +10,8 @@
 </head>
 
 <body>
-  <h1>Video Games Quizz - Admin Page</h1>
-  <hr>
-  <form action="/create" class="create" method="POST">
+  <h1>Video Games Quizz - Admin Page</h1><br><br>
+  <form action="/questions" class="create" method="POST">
     <label for="imageInput">Image URL:</label><br>
     <input type="text" name="image" id="imageInput"><br>
     <label for="questionInput">Question:</label><br>
@@ -26,9 +25,12 @@
       <% let src=q.img_url.split('/').splice(-1)[0]; %>
         <div class="card">
           <img src="/images/<%= src %>" alt="<%= q.name %> screenshot">
-          <h2>
-            <%= q.name %>
-          </h2>
+          <div class="textDelete">
+            <h2>
+              <%= q.name %>
+            </h2>
+            <button id="<%=src%>" onclick="del_card(this.id)" type="submit" class="deleteButton"> &times; </button>
+          </div>
         </div>
         <% });%>
   </div>

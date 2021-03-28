@@ -14,11 +14,11 @@ body {
   text-align: center;
 }
 
-hr {
-  border: 0;
-  height: 2px;
-  background: #333;
-  margin: 1rem 0;
+h2 {
+  font-size: larger;
+  margin: 10px auto;
+  word-wrap: break-word;
+  flex-basis: 50%;
 }
 
 .create {
@@ -26,14 +26,8 @@ hr {
   width: min(80%, 900px);
   font-size: large;
   display: inline-block;
-  border: 2px solid rgb(110, 190, 143);
+  border: 2px solid #283747;
   border-radius: 5px;
-}
-
-h2 {
-  font-size: larger;
-  word-wrap: break-word;
-  margin: 10px auto;
 }
 
 .create input {
@@ -56,23 +50,23 @@ h2 {
 .card {
   width: fit-content;
   height: fit-content;
-  /* min-height: 5rem; */
   margin: 1.5rem auto;
-  background-color: aliceblue;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, .6);
+  background-color: #f3f3f3;
+  box-shadow: rgba(0, 0, 0, 0.36) 0px 10px 36px 0px, rgba(0, 0, 0, 0.16) 0px 0px 0px 1px;
   border-radius: 5px;
-  /* transition: background-color .1s;
-  transition: transform .1s; */
+  background-color: #f3f3f3;
 }
-
-/* .card:hover {
-  transform: translateY(2px);
-  background-color: azure;
-} */
 
 .card img {
   width: min(800px, 80vw);
   border-radius: 5px 5px 0 0;
+}
+
+.textDelete {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin: 1rem 0;
 }
 
 #createButton {
@@ -85,20 +79,32 @@ h2 {
   border-width: 0;
   border-radius: 2px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, .6);
-  background-color: rgb(110, 190, 143);
+  background-color: #283747;
   color: whitesmoke;
   transition: background-color .2s;
 }
 
 #createButton:hover {
-  background-color: rgb(79, 139, 104);
+  background-color: #1d2833;
   outline: none;
   transform: translateY(2px);
 }
 
 #createButton:active {
-  background-color: rgb(66, 116, 87);
+  background-color: #932432;
   box-shadow: 0 2px #999;
   transform: translateY(2px);
   outline: none;
+}
+
+.deleteButton {
+  flex-basis: 50%;
+  font-size: 40px;
+  padding: 0 2rem;
+  margin: 0 max(20px, 2rem) 0 0;
+  border-width: 0;
+  border-radius: 2px;
+  background-color: #DE354C;
+  color: #f3f3f3;
+  transition: background-color .2s;
 }
