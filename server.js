@@ -1,11 +1,15 @@
-const express = require('express');
-const request = require('request');
 const fs = require('fs');
-const MongoClient = require("mongodb").MongoClient;
 const path = require('path');
 
-const app = express()
+const express = require('express');
+const request = require('request');
+const MongoClient = require("mongodb").MongoClient;
+const bcrypt = require('bcrypt');
 
+// bcrypt hashing salt nb of rounds
+const saltRounds = 0;
+
+const app = express()
 app.listen(3000)
 app.use(express.static(__dirname + '/public'))
 
@@ -15,6 +19,7 @@ MongoClient.connect("mongodb://localhost:27017", { useUnifiedTopology: true })
     console.log('db connected');
     const db = client.db('webapp')
     const images_coll = db.collection('images')
+    const users_coll = db.collection('users')
 
     // Middlewares
     app.set('view engine', 'ejs')
@@ -22,11 +27,12 @@ MongoClient.connect("mongodb://localhost:27017", { useUnifiedTopology: true })
     app.use(express.urlencoded({ extended: true }))
 
 
-    // Endpoints
+    // base page
     app.get('/', function (_req, res) {
-      res.send('index')
+      res.render('index.ejs')
     })
 
+    // admin page
     app.get('/admin', function (_req, res) {
       // Get all questions sorted by name to display them after
       const cursor = images_coll.find().sort({ name: 1 }).toArray()
@@ -37,11 +43,45 @@ MongoClient.connect("mongodb://localhost:27017", { useUnifiedTopology: true })
         .catch(console.error)
     })
 
+    // handle signin requests
+    app.post('/signin', async (req, res) => {
+      const uname = req.body.uname.trim();
+      const pwd = req.body.pwd.trim();
+      console.log(uname, pwd);
+      if (uname == "" || pwd == "") {
+        return res.status(422).send({ error: 'Username or Password cannot be empty' });
+      }
+      else {
+        // Store hash in DB.
+        const resultFind = await users_coll.findOne({ username: uname })
+        console.log(resultFind);
+        if (resultFind !== null) {
+          // username already exists
+          return res.status(422).send({ error: 'User already exists' })
+        }
+        else {
+          const hash = await bcrypt.hash(pwd, saltRounds);
+          const res = await users_coll.insertOne({ username: uname, password: hash })
+          if (res.insertedCount === 0) {
+            console.error("No user inserted");
+          }
+          else {
+            console.log("inserted", uname);
+          }
+        }
+      }
+    })
+
+    // handle login requests
+    app.post('/login', (req, res) => {
+
+    })
+
     // Post to create a new card
     app.post('/questions', (req, res,) => {
       if (!("image" in req.body && "question" in req.body)) {
         // If wrong data in body
-        return res.sendStatus(415);
+        return res.sendStatus(400);
       }
 
       if (req.body.image.trim() == "" || req.body.question.trim() == "") {
@@ -65,14 +105,13 @@ MongoClient.connect("mongodb://localhost:27017", { useUnifiedTopology: true })
           .catch(console.error)
       }
       else {
-        console.log("test redirect");
         return res.redirect('/admin');
       }
     })
 
+    // delete a card
     app.delete('/questions', (req, res) => {
       const str = 'https?://.*' + req.body.id;
-      console.log(str);
       images_coll.deleteOne(
         { img_url: { $regex: str } }
       ).then(result => {
