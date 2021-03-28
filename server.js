@@ -17,6 +17,7 @@ MongoClient.connect("mongodb://localhost:27017", { useUnifiedTopology: true })
     const images_coll = db.collection('images')
 
     // Middlewares
+    app.set('view engine', 'ejs')
     app.use(express.json())
     app.use(express.urlencoded({ extended: true }))
 
@@ -27,28 +28,43 @@ MongoClient.connect("mongodb://localhost:27017", { useUnifiedTopology: true })
     })
 
     app.get('/admin', function (_req, res) {
-      const cursor = images_coll.find()
-      res.sendFile(path.join(__dirname + '/public/admin.html'))
+      // Get all questions sorted by name to display them after
+      const cursor = images_coll.find().sort({ name: 1 }).toArray()
+        .then(questions => {
+          // render using template engine EJS
+          res.render('admin.ejs', { questions: questions })
+        })
+        .catch(err => console.error(err))
     })
 
     // Post to create a new card
-    app.post('/create', (req, res) => {
+    app.post('/create', (req, res,) => {
       if (!("image" in req.body && "question" in req.body)) {
-        console.log("Wrong data to insert");
-        return;
+        // If wrong data in body
+        return res.sendStatus(415);
       }
 
-      // Download image if not already here
+      if (req.body.image.trim() == "" || req.body.question.trim() == "") {
+        // If form has empty field
+        return res.redirect(422, '/admin')
+      }
+
+      // Download image if not already exists in the database/folder
       const path = `${__dirname}\\public\\images\\${req.body.image.split('/').splice(-1)[0]}`;
       const alreadyExists = download(req.body.image, path, _ => console.log('File downloaded'));
 
-      images_coll.insertOne({ img_url: req.body.image, name: req.body.question })
-        .then(_ => {
-          console.log('Inserted new question:');
-          console.log(req.body);
-          res.redirect('/admin')
+      // if not, add it into the DB
+      if (!alreadyExists)
+        images_coll.insertOne({
+          img_url: req.body.image,
+          name: req.body.question
         })
-        .catch(err => console.error(err))
+          .then(_ => {
+            console.log('Inserted new question:');
+            console.log(req.body);
+            res.redirect('/admin')
+          })
+          .catch(err => console.error(err))
     })
   })
   .catch(err => console.error(err))
