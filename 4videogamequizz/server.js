@@ -1,4 +1,6 @@
-const express = require('express')
+const express = require('express');
+const request = require('request');
+const fs = require('fs');
 const MongoClient = require("mongodb").MongoClient;
 const path = require('path');
 
@@ -20,27 +22,49 @@ MongoClient.connect("mongodb://localhost:27017", { useUnifiedTopology: true })
 
 
     // Endpoints
-    app.get('/', function (req, res) {
+    app.get('/', function (_req, res) {
       res.send('index')
     })
 
-    app.get('/admin', function (req, res) {
+    app.get('/admin', function (_req, res) {
+      const cursor = images_coll.find()
       res.sendFile(path.join(__dirname + '/public/admin.html'))
     })
 
     // Post to create a new card
     app.post('/create', (req, res) => {
-      console.log('Received new question:');
       if (!("image" in req.body && "question" in req.body)) {
         console.log("Wrong data to insert");
         return;
       }
-      console.log(req.body);
+
+      // Download image if not already here
+      const path = `${__dirname}\\public\\images\\${req.body.image.split('/').splice(-1)[0]}`;
+      const alreadyExists = download(req.body.image, path, _ => console.log('File downloaded'));
+
       images_coll.insertOne({ img_url: req.body.image, name: req.body.question })
-        .then(res.redirect('/admin'))
-        .catch(console.error('Error when inserting data: ' + req.body))
+        .then(_ => {
+          console.log('Inserted new question:');
+          console.log(req.body);
+          res.redirect('/admin')
+        })
+        .catch(err => console.error(err))
     })
   })
   .catch(err => console.error(err))
 
+// utility function to download a file if not exists
+// Returns whether file existed or not
+const download = (uri, filename, callback) => {
+  if (!fs.existsSync(filename)) {
+    request.head(uri, (_err, res, _body) => {
+      console.log('content-type:', res.headers['content-type']);
+      console.log('content-length:', res.headers['content-length']);
+
+      request(uri).pipe(fs.createWriteStream(filename)).on('close', callback);
+    });
+    return false;
+  }
+  return true;
+};
 
