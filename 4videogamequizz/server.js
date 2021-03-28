@@ -7,7 +7,10 @@ const MongoClient = require("mongodb").MongoClient;
 const bcrypt = require('bcrypt');
 
 // bcrypt hashing salt nb of rounds
-const saltRounds = 0;
+// exponential time growth:
+// 8 = around 40 hashs per second
+// 13 = around 1 hash per second
+const saltRounds = 8;
 
 const app = express()
 app.listen(3000)
@@ -32,13 +35,19 @@ MongoClient.connect("mongodb://localhost:27017", { useUnifiedTopology: true })
       res.render('index.ejs')
     })
 
+    // playing page
+    app.get('/play', (req, res) => {
+      res.send('ok')
+    })
+
     // admin page
     app.get('/admin', function (_req, res) {
       // Get all questions sorted by name to display them after
-      const cursor = images_coll.find().sort({ name: 1 }).toArray()
+      images_coll.find().sort({ name: 1 }).toArray()
         .then(questions => {
+          console.log(questions);
           // render using template engine EJS
-          res.render('admin.ejs', { questions: questions })
+          res.render('admin.ejs', { questions })
         })
         .catch(console.error)
     })
@@ -54,27 +63,51 @@ MongoClient.connect("mongodb://localhost:27017", { useUnifiedTopology: true })
       else {
         // Store hash in DB.
         const resultFind = await users_coll.findOne({ username: uname })
-        console.log(resultFind);
         if (resultFind !== null) {
           // username already exists
           return res.status(422).send({ error: 'User already exists' })
         }
         else {
           const hash = await bcrypt.hash(pwd, saltRounds);
-          const res = await users_coll.insertOne({ username: uname, password: hash })
-          if (res.insertedCount === 0) {
+          const insertRes = await users_coll.insertOne({ username: uname, password: hash })
+          if (insertRes.insertedCount === 0) {
             console.error("No user inserted");
           }
           else {
-            console.log("inserted", uname);
+            // redirect to /play
+            console.log("user inserted");
+            return res.redirect('/play')
           }
         }
       }
     })
 
     // handle login requests
-    app.post('/login', (req, res) => {
-
+    app.post('/login', async (req, res) => {
+      const uname = req.body.uname.trim();
+      const pwd = req.body.pwd.trim();
+      if (uname == "" || pwd == "") {
+        return res.status(422).send({ error: 'Username or Password cannot be empty' });
+      }
+      else {
+        // get password hash in DB
+        const user = await users_coll.findOne({ username: uname })
+        if (user === null) {
+          // username already exists
+          return res.status(422).send({ error: 'No account for this username' })
+        }
+        else {
+          // Check if username and password correspond
+          const isValidPassword = await bcrypt.compare(pwd, user.password)
+          if (!isValidPassword) {
+            console.log("invalid");
+            return res.status(401).send({ error: 'Wrong password for this username' })
+          }
+          else {
+            return res.redirect('/play');
+          }
+        }
+      }
     })
 
     // Post to create a new card
