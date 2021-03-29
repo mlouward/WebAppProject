@@ -13,9 +13,9 @@
   <h1>Video Games Quizz - Admin Page</h1><br><br>
   <form action="/questions" class="create" method="POST">
     <label for="imageInput">Image URL:</label><br>
-    <input type="text" name="image" id="imageInput"><br>
+    <input type="text" name="image" id="imageInput" required><br>
     <label for="questionInput">Question:</label><br>
-    <input type="text" name="question" id="questionInput"><br>
+    <input type="text" name="question" id="questionInput" required><br>
     <button type="submit" id="createButton">Create a Question</button>
   </form>
   <div class="questions">
