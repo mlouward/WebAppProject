@@ -15,7 +15,7 @@ const Fuse = require('fuse.js')
 const saltRounds = 8;
 
 const app = express()
-app.listen(3000)
+app.listen(5000)
 app.use(express.static(__dirname + '/public'))
 
 MongoClient.connect("mongodb://localhost:27017", { useUnifiedTopology: true })
@@ -27,6 +27,7 @@ MongoClient.connect("mongodb://localhost:27017", { useUnifiedTopology: true })
     const users_coll = db.collection('users')
     const scores_coll = db.collection('scores')
     let current_questions = null;
+    let last_index = -1;
 
     // Middlewares
     app.set('view engine', 'ejs')
@@ -40,8 +41,15 @@ MongoClient.connect("mongodb://localhost:27017", { useUnifiedTopology: true })
 
 
     // base page
-    app.get('/', function (_req, res) {
+    app.get('/', function (req, res) {
       res.render('index.ejs')
+    })
+
+    // logout page
+    app.get('/logout', function (req, res) {
+      req.session.destroy(_ => {
+        res.render('index.ejs')
+      });
     })
 
     // playing page
@@ -53,6 +61,7 @@ MongoClient.connect("mongodb://localhost:27017", { useUnifiedTopology: true })
         ).toArray()
           .then(questions => {
             current_questions = questions;
+            last_index = 0;
             // render using template engine EJS
             res.render('play.ejs', {
               image: current_questions[0].img_url,
@@ -80,8 +89,12 @@ MongoClient.connect("mongodb://localhost:27017", { useUnifiedTopology: true })
         const possibleAnswers = current_questions.map(x => {
           return x.name;
         })
-        console.log(possibleAnswers);
 
+        if (last_index > index) {
+          return res.send("You cannot go back to previous questions, or resubmit your score. <a href='/play'>Back to start</a>")
+        }
+
+        // fuzzy matching
         const fuse = new Fuse(current_questions.map(x => { return x.name }), {
           includeScore: true,
           threshold: .2,
@@ -89,7 +102,6 @@ MongoClient.connect("mongodb://localhost:27017", { useUnifiedTopology: true })
         });
         const result = fuse.search(answer);
         console.log(result);
-        // fuzzy matching
 
         const rightAnswer = result.length > 0 ?
           (result[0].item === current_questions[index].name) :
@@ -97,9 +109,10 @@ MongoClient.connect("mongodb://localhost:27017", { useUnifiedTopology: true })
 
         // End screen
         if (index === 9) {
+          last_index += 1;
           const finalScore = score + rightAnswer;
           await scores_coll.insertOne({ name: req.session.username, score: finalScore, date: new Date(Date.now()) })
-          const highScoresList = scores_coll.find().sort('score').limit(10)
+          const highScoresList = await scores_coll.find().sort({ score: -1, date: 1 }).limit(10).toArray()
           return res.render('play.ejs', {
             index: 10,
             // final score whether last answer is true/false
@@ -110,6 +123,7 @@ MongoClient.connect("mongodb://localhost:27017", { useUnifiedTopology: true })
           })
         }
         if (rightAnswer) {
+          last_index += 1;
           return res.render('play.ejs', {
             image: current_questions[index + 1].img_url,
             rightAnswer,
@@ -121,6 +135,7 @@ MongoClient.connect("mongodb://localhost:27017", { useUnifiedTopology: true })
         }
         // wrong answer
         else {
+          last_index += 1;
           return res.render('play.ejs', {
             image: current_questions[index + 1].img_url,
             rightAnswer,
@@ -138,14 +153,21 @@ MongoClient.connect("mongodb://localhost:27017", { useUnifiedTopology: true })
     })
 
     // admin page
-    app.get('/admin', function (_req, res) {
-      // Get all questions sorted by name to display them after
-      images_coll.find().sort({ name: 1 }).toArray()
-        .then(questions => {
-          // render using template engine EJS
-          res.render('admin.ejs', { questions })
-        })
-        .catch(console.error)
+    app.get('/admin', function (req, res) {
+      if (req.session.role == "admin")
+        // Get all questions sorted by name to display them after
+        images_coll.find().sort({ name: 1 }).toArray()
+          .then(questions => {
+            // render using template engine EJS
+            res.render('admin.ejs', { questions });
+            res.end()
+          })
+          .catch(console.error)
+      else {
+        res.send("User is not admin. <a href='/'>Back to main page</a>")
+        res.end()
+      }
+
     })
 
     // handle signin requests
@@ -158,6 +180,7 @@ MongoClient.connect("mongodb://localhost:27017", { useUnifiedTopology: true })
       else {
         // Store hash in DB.
         const resultFind = await users_coll.findOne({ username: uname })
+        console.log(resultFind);
         if (resultFind !== null) {
           // username already exists
           res.status(422).send({ error: 'User already exists' })
@@ -169,6 +192,9 @@ MongoClient.connect("mongodb://localhost:27017", { useUnifiedTopology: true })
             console.error("No user inserted");
           }
           else {
+            req.session.loggedin = true;
+            req.session.username = uname;
+            req.session.role = "user";
             res.redirect('/play')
           }
         }
@@ -202,7 +228,16 @@ MongoClient.connect("mongodb://localhost:27017", { useUnifiedTopology: true })
           else {
             req.session.loggedin = true;
             req.session.username = uname;
-            res.redirect('/play');
+            if (user.role == "admin") {
+              req.session.role = "admin";
+              res.redirect('/admin');
+              res.end()
+            }
+            else {
+              req.session.role = "user";
+              res.redirect('/play');
+              res.end()
+            }
           }
         }
         res.end()
@@ -211,51 +246,62 @@ MongoClient.connect("mongodb://localhost:27017", { useUnifiedTopology: true })
 
     // Post to create a new card
     app.post('/questions', (req, res,) => {
-      if (!("image" in req.body && "question" in req.body)) {
-        // If wrong data in body
-        return res.sendStatus(400);
-      }
+      if (req.session.role == "admin") {
+        if (!("image" in req.body && "question" in req.body)) {
+          // If wrong data in body
+          return res.sendStatus(400);
+        }
 
-      if (req.body.image.trim() == "" || req.body.question.trim() == "") {
-        // If form has empty field
-        return res.redirect(422, '/admin')
-      }
+        if (req.body.image.trim() == "" || req.body.question.trim() == "") {
+          // If form has empty field
+          return res.redirect(422, '/admin')
+        }
 
-      // Download image if not already exists in the database/folder
-      const path = `${__dirname}\\public\\images\\${req.body.image.split('/').splice(-1)[0]}`;
-      const alreadyExists = download(req.body.image, path, _ => console.log('File downloaded'));
+        // Download image if not already exists in the database/folder
+        const path = `${__dirname}\\public\\images\\${req.body.image.split('/').splice(-1)[0]}`;
+        const alreadyExists = download(req.body.image, path, _ => console.log('File downloaded'));
 
-      // if not, add it into the DB
-      if (!alreadyExists) {
-        images_coll.insertOne({
-          img_url: req.body.image,
-          name: req.body.question
-        })
-          .then(_ => {
-            return res.redirect('/admin')
+        // if not, add it into the DB
+        if (!alreadyExists) {
+          images_coll.insertOne({
+            img_url: req.body.image,
+            name: req.body.question
           })
-          .catch(console.error)
+            .then(_ => {
+              return res.redirect('/admin')
+            })
+            .catch(console.error)
+        }
+        else {
+          return res.redirect('/admin');
+        }
+        res.end();
       }
       else {
-        return res.redirect('/admin');
+        res.sendStatus(401);
       }
     })
 
     // delete a card
     app.delete('/questions', (req, res) => {
-      const str = 'https?://.*' + req.body.id;
-      images_coll.deleteOne(
-        { img_url: { $regex: str } }
-      ).then(result => {
-        if (result.deletedCount !== 0) {
-          // delete local file
-          const path = `${__dirname}\\public\\images\\${req.body.id}`;
-          fs.unlinkSync(path)
-          // return msg
-          return res.json('card deleted')
-        }
-      })
-        .catch(error => console.error(error))
+      if (req.session.role == "admin") {
+        const str = 'https?://.*' + req.body.id;
+        images_coll.deleteOne(
+          { img_url: { $regex: str } }
+        ).then(result => {
+          if (result.deletedCount !== 0) {
+            // delete local file
+            const path = `${__dirname}\\public\\images\\${req.body.id}`;
+            fs.unlinkSync(path)
+            // return msg
+            return res.json('card deleted')
+          }
+        })
+          .catch(error => console.error(error))
+      }
+      else {
+        res.sendStatus(401);
+      }
     })
   })
   .catch(console.error)
