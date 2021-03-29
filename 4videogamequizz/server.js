@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 
 const request = require('request');
 const express = require('express');
@@ -247,38 +248,54 @@ MongoClient.connect(process.env.MONGOURI, { useNewUrlParser: true, useUnifiedTop
     // Post to create a new card
     app.post('/questions', (req, res,) => {
       if (req.session.role == "admin") {
+        let image = req.body.image.trim();
+        const question = req.body.question.trim();
+
         if (!("image" in req.body && "question" in req.body)) {
           // If wrong data in body
-          return res.sendStatus(400);
+          res.sendStatus(400)
+          res.end()
         }
 
-        if (req.body.image.trim() == "" || req.body.question.trim() == "") {
+        if (image == "" || question == "") {
           // If form has empty field
-          return res.redirect(422, '/admin')
+          res.redirect(422, '/admin')
+        }
+
+        // check if valid URL
+        try {
+          _ = new URL(image);
+          console.log(image);
+        } catch (_) {
+          res.sendStatus(400)
+          res.end()
+          return;
         }
 
         // Download image if not already exists in the database/folder
-        const path = `${__dirname}\\public\\images\\${req.body.image.split('/').splice(-1)[0]}`;
-        const alreadyExists = download(req.body.image, path, _ => console.log('File downloaded'));
+        const p = path.join(__dirname, 'public', 'images', image.split('/').splice(-1)[0]);
+        const alreadyExists = download(image, p, console.log);
 
         // if not, add it into the DB
         if (!alreadyExists) {
           images_coll.insertOne({
-            img_url: req.body.image,
-            name: req.body.question
+            img_url: image,
+            name: question
           })
             .then(_ => {
-              return res.redirect('/admin')
+              res.redirect('/admin')
+              res.end()
             })
             .catch(console.error)
         }
         else {
-          return res.redirect('/admin');
+          res.redirect('/admin')
+          res.end();
         }
-        res.end();
       }
       else {
-        res.sendStatus(401);
+        res.sendStatus(401)
+        res.end()
       }
     })
 
@@ -291,8 +308,8 @@ MongoClient.connect(process.env.MONGOURI, { useNewUrlParser: true, useUnifiedTop
         ).then(result => {
           if (result.deletedCount !== 0) {
             // delete local file
-            const path = `${__dirname}\\public\\images\\${req.body.id}`;
-            fs.unlinkSync(path)
+            const p = path.join(__dirname, 'public', 'images', req.body.id);
+            fs.unlinkSync(p)
             // return msg
             return res.json('card deleted')
           }
@@ -316,8 +333,10 @@ const download = (uri, filename, callback) => {
 
       request(uri).pipe(fs.createWriteStream(filename)).on('close', callback);
     });
+    console.log("File downloaded");
     return false;
   }
+  console.log("File existed");
   return true;
 };
 
