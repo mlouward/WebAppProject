@@ -11,7 +11,12 @@
 
 
 <body>
-  <h1>Video Games Quizz - <%=username%>'s Page</h1>
+  <div class="header">
+    <h1>Video Games Quizz - <%=username%>'s Page</h1>
+    <a class="button" href="/logout">
+      <div class="logout">Log out</div>
+    </a>
+  </div>
   <% if (!gameFinished) {%>
     <% let src=image.split('/').splice(-1)[0]; %>
       <div class="scoretable">
@@ -50,15 +55,33 @@
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>Dom</td>
-                <td>6000</td>
-              </tr>
-              <tr class="active-row">
-                <td>Melissa</td>
-                <td>5150</td>
-              </tr>
-              <!-- and so on... -->
+              <% for (i=0; i < topScores.length; i++) { %>
+                <% if (i==0) { %>
+                  <tr class="active-row">
+                    <td>
+                      <%=topScores[i].name%>
+                    </td>
+                    <td>
+                      <%=topScores[i].score%>
+                    </td>
+                    <td>
+                      <%=topScores[i].date.toUTCString()%>
+                    </td>
+                  </tr>
+                  <% } else { %>
+                    <tr>
+                      <td>
+                        <%=topScores[i].name%>
+                      </td>
+                      <td>
+                        <%=topScores[i].score%>
+                      </td>
+                      <td>
+                        <%=topScores[i].date.toUTCString()%>
+                      </td>
+                    </tr>
+                    <% } %>
+                      <% } %>
             </tbody>
           </table>
         </div>

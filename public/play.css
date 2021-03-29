@@ -9,7 +9,7 @@ body {
   text-align: center;
 }
 
-h1 {
+.header {
   margin: 2rem 0;
 }
 
@@ -44,7 +44,7 @@ h2.score {
 #btnsubmit {
   width: 30%;
   padding: 15px;
-  background-color: #535b63;
+  background-color: #009874;
   border: 0;
   cursor: pointer;
   color: #ffffff;
@@ -67,7 +67,7 @@ h2.score {
 }
 
 #btnsubmit:hover {
-  background-color: #999999;
+  background-color: #018063;
   outline: none;
   transform: translateY(2px);
 }
@@ -76,7 +76,7 @@ h2.score {
   width: 100%;
   margin: 3rem auto;
   padding: 15px;
-  background-color: #535b63;
+  background-color: #009874;
   border: 0;
   box-sizing: border-box;
   cursor: pointer;
@@ -86,6 +86,7 @@ h2.score {
 
 .styled-table {
   border-collapse: collapse;
+  width: 100%;
   margin: 25px 0;
   font-size: 0.9em;
   font-family: sans-serif;
@@ -94,9 +95,9 @@ h2.score {
 }
 
 .styled-table thead tr {
-  background-color: #009879;
+  background-color: #009874;
   color: #ffffff;
-  text-align: left;
+  text-align: center;
 }
 
 .styled-table th, .styled-table td {
@@ -112,10 +113,66 @@ h2.score {
 }
 
 .styled-table tbody tr:last-of-type {
-  border-bottom: 2px solid #009879;
+  border-bottom: 2px solid #009874;
 }
 
 .styled-table tbody tr.active-row {
   font-weight: bold;
-  color: #009879;
+  color: #009874;
+}
+
+.header {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+}
+
+.logout {
+  font-size: 1.1rem;
+  position: relative;
+  right: -4px;
+  bottom: -8px;
+  overflow: hidden;
+  letter-spacing: 2px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity .45s;
+  -webkit-transition: opacity .35s;
+}
+
+.button {
+  text-decoration: none;
+  float: right;
+  padding: 12px;
+  margin: 15px;
+  color: white;
+  width: 40px;
+  height: 40px;
+  background-color: black;
+  transition: width .35s;
+  -webkit-transition: width .35s;
+  overflow: hidden
+}
+
+a:hover {
+  width: 120px;
+  background-color: #D22730;
+}
+
+a:hover .logout {
+  opacity: .9;
+}
+
+a {
+  text-decoration: none;
+}
+
+.header h1 {
+  float: left;
+  margin: auto;
+}
+
+.header a {
+  float: right;
+  margin: auto;
 }

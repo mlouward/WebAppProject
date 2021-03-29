@@ -25,10 +25,22 @@ form input[type="password"], form input[type="text"] {
 form button[type="submit"] {
   width: 100%;
   padding: 15px;
-  background-color: #535b63;
+  background-color: #009874;
   border: 0;
   box-sizing: border-box;
   cursor: pointer;
   font-weight: bold;
   color: #ffffff;
+}
+
+.footer {
+  margin: 0 0 1rem 0;
+  width: 100%;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+
+.footer h4 {
+  margin: 0 3rem;
 }
