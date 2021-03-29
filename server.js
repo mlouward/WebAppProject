@@ -15,7 +15,7 @@ require('dotenv').config()
 const saltRounds = 8;
 
 const app = express()
-app.listen(5000)
+app.listen(process.env.PORT)
 app.use(express.static(__dirname + '/public'))
 
 
