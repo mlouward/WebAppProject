@@ -102,7 +102,6 @@ MongoClient.connect(process.env.MONGOURI, { useNewUrlParser: true, useUnifiedTop
           ignoreLocation: true
         });
         const result = fuse.search(answer);
-        console.log(result);
 
         const rightAnswer = result.length > 0 ?
           (result[0].item === current_questions[index].name) :
