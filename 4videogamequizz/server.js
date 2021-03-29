@@ -4,8 +4,9 @@ const path = require('path');
 const request = require('request');
 const express = require('express');
 const session = require('express-session');
-const bcrypt = require('bcrypt');
 const MongoClient = require("mongodb").MongoClient;
+const bcrypt = require('bcrypt');
+const Fuse = require('fuse.js')
 
 // bcrypt hashing salt nb of rounds
 // exponential time growth:
@@ -24,6 +25,7 @@ MongoClient.connect("mongodb://localhost:27017", { useUnifiedTopology: true })
     const db = client.db('webapp')
     const images_coll = db.collection('images')
     const users_coll = db.collection('users')
+    const scores_coll = db.collection('scores')
     let current_questions = null;
 
     // Middlewares
@@ -65,35 +67,52 @@ MongoClient.connect("mongodb://localhost:27017", { useUnifiedTopology: true })
           .catch(console.error)
       }
       else {
-        res.send("You need to login to view this page")
+        res.send("You need to login to view this page. <a href='/'>Back to main page</a>")
         res.end()
       }
     })
 
-    app.post('/play', (req, res) => {
+    app.post('/play', async (req, res) => {
       if (req.session.loggedin) {
         const answer = req.body.answer;
         const index = parseInt(req.body.index);
         const score = parseInt(req.body.score);
-        console.log(answer, index);
-        console.log(current_questions);
+        const possibleAnswers = current_questions.map(x => {
+          return x.name;
+        })
+        console.log(possibleAnswers);
+
+        const fuse = new Fuse(current_questions.map(x => { return x.name }), {
+          includeScore: true,
+          threshold: .2,
+          ignoreLocation: true
+        });
+        const result = fuse.search(answer);
+        console.log(result);
+        // fuzzy matching
+
+        const rightAnswer = result.length > 0 ?
+          (result[0].item === current_questions[index].name) :
+          false
+
         // End screen
-        if (index === 10) {
+        if (index === 9) {
+          const finalScore = score + rightAnswer;
+          await scores_coll.insertOne({ name: req.session.username, score: finalScore, date: new Date(Date.now()) })
+          const highScoresList = scores_coll.find().sort('score').limit(10)
           return res.render('play.ejs', {
-            image: current_questions[index + 1].img_url,
-            rightAnswer: true,
-            index: index,
-            score: score,
+            index: 10,
+            // final score whether last answer is true/false
+            score: finalScore,
+            topScores: highScoresList,
             username: req.session.username,
             gameFinished: true
           })
         }
-        // fuzzy matching
-        if (answer === current_questions[index].name) {
-          console.log(current_questions[index + 1]);
+        if (rightAnswer) {
           return res.render('play.ejs', {
             image: current_questions[index + 1].img_url,
-            rightAnswer: true,
+            rightAnswer,
             index: index + 1,
             score: score + 1,
             username: req.session.username,
@@ -101,23 +120,19 @@ MongoClient.connect("mongodb://localhost:27017", { useUnifiedTopology: true })
           })
         }
         // wrong answer
-        if (answer !== current_questions[index].name) {
+        else {
           return res.render('play.ejs', {
             image: current_questions[index + 1].img_url,
-            rightAnswer: false,
+            rightAnswer,
             index: index + 1,
             score: score,
             username: req.session.username,
             gameFinished: false
           })
         }
-        // Quizz finished
-        else
-          res.send("finished!")
-        res.end()
       }
       else {
-        res.send("You need to login to view this page")
+        res.send("You need to login to view this page. <a href='/'>Back to main page</a>")
         res.end()
       }
     })

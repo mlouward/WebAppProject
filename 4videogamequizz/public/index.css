@@ -17,7 +17,7 @@ form h1 {
 form input[type="password"], form input[type="text"] {
   width: 100%;
   padding: 15px;
-  border: 1px solid #dddddd;
+  border: thin solid #dddddd;
   margin-bottom: 15px;
   box-sizing: border-box;
 }

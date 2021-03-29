@@ -9,24 +9,46 @@ body {
   text-align: center;
 }
 
+h1 {
+  margin: 2rem 0;
+}
+
 .answerbox {
   display: flex;
   flex-direction: row;
 }
 
-.submit {
-  padding: 1rem;
-  width: min(80%, 900px);
-  font-size: large;
-  display: inline-block;
-  border: 2px solid #283747;
-  border-radius: 5px;
+.answerbox input[type="text"] {
+  margin: 1rem;
+  width: 70%;
+  height: 20px;
+  border: thin solid grey;
 }
 
-.submit input {
-  margin: 1rem auto;
-  width: 60%;
-  height: 20px;
+.scoretable {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+h2.progress {
+  float: left;
+  margin: auto;
+}
+
+h2.score {
+  float: right;
+  margin: auto;
+}
+
+#btnsubmit {
+  width: 30%;
+  padding: 15px;
+  background-color: #535b63;
+  border: 0;
+  cursor: pointer;
+  color: #ffffff;
+  font-size: larger;
 }
 
 .card {
@@ -48,4 +70,52 @@ body {
   background-color: #999999;
   outline: none;
   transform: translateY(2px);
+}
+
+#play-again {
+  width: 100%;
+  margin: 3rem auto;
+  padding: 15px;
+  background-color: #535b63;
+  border: 0;
+  box-sizing: border-box;
+  cursor: pointer;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.styled-table {
+  border-collapse: collapse;
+  margin: 25px 0;
+  font-size: 0.9em;
+  font-family: sans-serif;
+  min-width: 400px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+}
+
+.styled-table thead tr {
+  background-color: #009879;
+  color: #ffffff;
+  text-align: left;
+}
+
+.styled-table th, .styled-table td {
+  padding: 12px 15px;
+}
+
+.styled-table tbody tr {
+  border-bottom: thin solid #dddddd;
+}
+
+.styled-table tbody tr:nth-of-type(even) {
+  background-color: #f3f3f3;
+}
+
+.styled-table tbody tr:last-of-type {
+  border-bottom: 2px solid #009879;
+}
+
+.styled-table tbody tr.active-row {
+  font-weight: bold;
+  color: #009879;
 }
