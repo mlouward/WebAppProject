@@ -1,10 +1,11 @@
 const fs = require('fs');
 const path = require('path');
 
-const express = require('express');
 const request = require('request');
-const MongoClient = require("mongodb").MongoClient;
+const express = require('express');
+const session = require('express-session');
 const bcrypt = require('bcrypt');
+const MongoClient = require("mongodb").MongoClient;
 
 // bcrypt hashing salt nb of rounds
 // exponential time growth:
@@ -23,11 +24,17 @@ MongoClient.connect("mongodb://localhost:27017", { useUnifiedTopology: true })
     const db = client.db('webapp')
     const images_coll = db.collection('images')
     const users_coll = db.collection('users')
+    let current_questions = null;
 
     // Middlewares
     app.set('view engine', 'ejs')
     app.use(express.json())
     app.use(express.urlencoded({ extended: true }))
+    app.use(session({
+      secret: Math.random().toString(36).substring(10),
+      resave: true,
+      saveUninitialized: true
+    }))
 
 
     // base page
@@ -37,7 +44,82 @@ MongoClient.connect("mongodb://localhost:27017", { useUnifiedTopology: true })
 
     // playing page
     app.get('/play', (req, res) => {
-      res.send('ok')
+      if (req.session.loggedin) {
+        // Get 10 random questions
+        images_coll.aggregate(
+          [{ $sample: { size: 10 } }]
+        ).toArray()
+          .then(questions => {
+            current_questions = questions;
+            // render using template engine EJS
+            res.render('play.ejs', {
+              image: current_questions[0].img_url,
+              index: 0,
+              score: 0,
+              username: req.session.username,
+              rightAnswer: false,
+              gameFinished: false
+            })
+            res.end()
+          })
+          .catch(console.error)
+      }
+      else {
+        res.send("You need to login to view this page")
+        res.end()
+      }
+    })
+
+    app.post('/play', (req, res) => {
+      if (req.session.loggedin) {
+        const answer = req.body.answer;
+        const index = parseInt(req.body.index);
+        const score = parseInt(req.body.score);
+        console.log(answer, index);
+        console.log(current_questions);
+        // End screen
+        if (index === 10) {
+          return res.render('play.ejs', {
+            image: current_questions[index + 1].img_url,
+            rightAnswer: true,
+            index: index,
+            score: score,
+            username: req.session.username,
+            gameFinished: true
+          })
+        }
+        // fuzzy matching
+        if (answer === current_questions[index].name) {
+          console.log(current_questions[index + 1]);
+          return res.render('play.ejs', {
+            image: current_questions[index + 1].img_url,
+            rightAnswer: true,
+            index: index + 1,
+            score: score + 1,
+            username: req.session.username,
+            gameFinished: false
+          })
+        }
+        // wrong answer
+        if (answer !== current_questions[index].name) {
+          return res.render('play.ejs', {
+            image: current_questions[index + 1].img_url,
+            rightAnswer: false,
+            index: index + 1,
+            score: score,
+            username: req.session.username,
+            gameFinished: false
+          })
+        }
+        // Quizz finished
+        else
+          res.send("finished!")
+        res.end()
+      }
+      else {
+        res.send("You need to login to view this page")
+        res.end()
+      }
     })
 
     // admin page
@@ -45,7 +127,6 @@ MongoClient.connect("mongodb://localhost:27017", { useUnifiedTopology: true })
       // Get all questions sorted by name to display them after
       images_coll.find().sort({ name: 1 }).toArray()
         .then(questions => {
-          console.log(questions);
           // render using template engine EJS
           res.render('admin.ejs', { questions })
         })
@@ -56,16 +137,15 @@ MongoClient.connect("mongodb://localhost:27017", { useUnifiedTopology: true })
     app.post('/signin', async (req, res) => {
       const uname = req.body.uname.trim();
       const pwd = req.body.pwd.trim();
-      console.log(uname, pwd);
       if (uname == "" || pwd == "") {
-        return res.status(422).send({ error: 'Username or Password cannot be empty' });
+        res.status(422).send({ error: 'Username or Password cannot be empty' });
       }
       else {
         // Store hash in DB.
         const resultFind = await users_coll.findOne({ username: uname })
         if (resultFind !== null) {
           // username already exists
-          return res.status(422).send({ error: 'User already exists' })
+          res.status(422).send({ error: 'User already exists' })
         }
         else {
           const hash = await bcrypt.hash(pwd, saltRounds);
@@ -74,39 +154,43 @@ MongoClient.connect("mongodb://localhost:27017", { useUnifiedTopology: true })
             console.error("No user inserted");
           }
           else {
-            // redirect to /play
-            console.log("user inserted");
-            return res.redirect('/play')
+            res.redirect('/play')
           }
         }
+        res.end()
       }
     })
 
     // handle login requests
     app.post('/login', async (req, res) => {
-      const uname = req.body.uname.trim();
-      const pwd = req.body.pwd.trim();
-      if (uname == "" || pwd == "") {
-        return res.status(422).send({ error: 'Username or Password cannot be empty' });
+      const uname = req.body.luname.trim();
+      const pwd = req.body.lpwd.trim();
+      if (!uname || !pwd) {
+        res.status(422).send({ error: 'Username or Password cannot be empty' });
+        res.end()
       }
       else {
         // get password hash in DB
         const user = await users_coll.findOne({ username: uname })
         if (user === null) {
           // username already exists
-          return res.status(422).send({ error: 'No account for this username' })
+          res.status(422).send({ error: 'No account for this username' })
+          res.end()
         }
         else {
           // Check if username and password correspond
           const isValidPassword = await bcrypt.compare(pwd, user.password)
           if (!isValidPassword) {
             console.log("invalid");
-            return res.status(401).send({ error: 'Wrong password for this username' })
+            res.status(401).send({ error: 'Wrong password for this username' })
           }
           else {
-            return res.redirect('/play');
+            req.session.loggedin = true;
+            req.session.username = uname;
+            res.redirect('/play');
           }
         }
+        res.end()
       }
     })
 
