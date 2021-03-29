@@ -1,5 +1,4 @@
 const fs = require('fs');
-const path = require('path');
 
 const request = require('request');
 const express = require('express');
@@ -7,6 +6,7 @@ const session = require('express-session');
 const MongoClient = require("mongodb").MongoClient;
 const bcrypt = require('bcrypt');
 const Fuse = require('fuse.js')
+require('dotenv').config()
 
 // bcrypt hashing salt nb of rounds
 // exponential time growth:
@@ -18,7 +18,8 @@ const app = express()
 app.listen(5000)
 app.use(express.static(__dirname + '/public'))
 
-MongoClient.connect("mongodb://localhost:27017", { useUnifiedTopology: true })
+
+MongoClient.connect(process.env.MONGOURI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(client => {
     // Connect to mongodb
     console.log('db connected');

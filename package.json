@@ -1,11 +1,15 @@
 {
   "dependencies": {
     "bcrypt": "^5.0.1",
+    "dotenv": "^8.2.0",
     "ejs": "^3.1.6",
     "express": "^4.17.1",
     "express-session": "^1.17.1",
     "fuse.js": "^6.4.6",
     "mongodb": "^3.6.5",
     "request": "^2.88.2"
+  },
+  "scripts": {
+    "start": "node server.js"
   }
 }
