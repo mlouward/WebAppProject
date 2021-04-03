@@ -22,17 +22,16 @@
     <!-- Get source from downloaded images folder -->
     <!-- we split the url to find the filename under which it was downloaded -->
     <% questions.forEach(function(q) { %>
-      <% let src=q.img_url.split('/').splice(-1)[0]; %>
-        <div class="card">
-          <img src="/images/<%= src %>" alt="<%= q.name %> screenshot">
-          <div class="textDelete">
-            <h2>
-              <%= q.name %>
-            </h2>
-            <button id="<%=src%>" onclick="del_card(this.id)" type="submit" class="deleteButton"> &times; </button>
-          </div>
+      <div class="card">
+        <img src="<%= img_url %>" alt="<%= q.name %> screenshot">
+        <div class="textDelete">
+          <h2>
+            <%= q.name %>
+          </h2>
+          <button id="<%=src%>" onclick="del_card(this.id)" type="submit" class="deleteButton"> &times; </button>
         </div>
-        <% });%>
+      </div>
+      <% });%>
   </div>
 </body>
 
