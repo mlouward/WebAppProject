@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Homepage - Video Games Quizz</title>
+  <link rel="stylesheet" href="index.css">
+</head>
+
+<body>
+  <h1>Video Game Quizz - Home</h1>
+  <form action="/login" class="login" method="POST">
+    <!-- <label for="uname">Username</label> -->
+    <input type="text" id="luname" name="luname" placeholder="Username" autocomplete="username" required>
+    <!-- <label for="pwd">Password</label> -->
+    <input type="password" id="lpwd" name="lpwd" placeholder="Password" autocomplete="current-password" required>
+    <button type="submit" id="login-button">Log In</button>
+  </form>
+
+  <div class="footer">
+    <hr>
+    <h4>No account? Sign in here:</h4>
+    <form class="signin">
+      <!-- <label for="uname">Username</label> -->
+      <input type="text" id="suname" placeholder="Username" autocomplete="username" required>
+      <!-- <label for="pwd">Password</label> -->
+      <input type="password" id="spwd" placeholder="Password" autocomplete="new-password" required>
+      <button type="submit" id="signin-button">Sign In</button>
+    </form>
+  </div>
+</body>
+
+<script src="index.js"></script>
+
+</html>

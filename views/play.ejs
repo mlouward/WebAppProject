@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="play.css">
+  <title>Play - Video Games Quizz</title>
+</head>
+
+
+<body>
+  <div class="header">
+    <h1>Video Games Quizz - <%=username%>'s Page</h1>
+    <a class="button" href="/logout">
+      <div class="logout">Log out</div>
+    </a>
+  </div>
+  <% if (!gameFinished) {%>
+    <% let src=image.split('/').splice(-1)[0]; %>
+      <div class="scoretable">
+        <h2 class="progress">Question <%=parseInt(index)+1%> / 10</h2>
+        <h2 class="score">Score: <%=score%> / <%=index%>
+        </h2>
+      </div>
+      <h2>Guess the name of the game!</h2>
+      <div class="card">
+        <form action="/play" method="post">
+          <img src="/images/<%= src %>" alt="Screenshot">
+          <div class="answerbox">
+            <input class="submit" name="answer" id="answer" type="text" autofocus autocomplete="off">
+            <button type="submit" class="submit" id="btnsubmit">Check Answer</button>
+            <input type="hidden" name="index" id="index" value="<%= index %>">
+            <input type="hidden" name="score" id="score" value="<%= score %>">
+          </div>
+        </form>
+      </div>
+      <% } else{ %>
+        <!-- end game screen when game over -->
+        <div class="endscreen">
+          <div class="scoretable">
+            <h2 class="score">Final score: <%=score%> / <%=index%>!</h2>
+            <h2 class="progress">Well played!</h2>
+          </div>
+          <form action="/play" method="get">
+            <button id="play-again" type="submit">Play again</button>
+          </form>
+          <table class="styled-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Score</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% for (i=0; i < topScores.length; i++) { %>
+                <% if (i==0) { %>
+                  <tr class="active-row">
+                    <td>
+                      <%=topScores[i].name%>
+                    </td>
+                    <td>
+                      <%=topScores[i].score%>
+                    </td>
+                    <td>
+                      <%=topScores[i].date.toUTCString()%>
+                    </td>
+                  </tr>
+                  <% } else { %>
+                    <tr>
+                      <td>
+                        <%=topScores[i].name%>
+                      </td>
+                      <td>
+                        <%=topScores[i].score%>
+                      </td>
+                      <td>
+                        <%=topScores[i].date.toUTCString()%>
+                      </td>
+                    </tr>
+                    <% } %>
+                      <% } %>
+            </tbody>
+          </table>
+        </div>
+        <% } %>
+</body>
+
+</html>

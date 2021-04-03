@@ -1,0 +1,178 @@
+html {
+  display: table;
+  margin: auto;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+body {
+  vertical-align: top;
+  text-align: center;
+}
+
+.header {
+  margin: 2rem 0;
+}
+
+.answerbox {
+  display: flex;
+  flex-direction: row;
+}
+
+.answerbox input[type="text"] {
+  margin: 1rem;
+  width: 70%;
+  height: 20px;
+  border: thin solid grey;
+}
+
+.scoretable {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+h2.progress {
+  float: left;
+  margin: auto;
+}
+
+h2.score {
+  float: right;
+  margin: auto;
+}
+
+#btnsubmit {
+  width: 30%;
+  padding: 15px;
+  background-color: #009874;
+  border: 0;
+  cursor: pointer;
+  color: #ffffff;
+  font-size: larger;
+}
+
+.card {
+  width: fit-content;
+  height: fit-content;
+  margin: 1.5rem auto;
+  background-color: #f3f3f3;
+  box-shadow: rgba(0, 0, 0, 0.36) 0px 10px 36px 0px, rgba(0, 0, 0, 0.16) 0px 0px 0px 1px;
+  border-radius: 5px;
+  background-color: #f3f3f3;
+}
+
+.card img {
+  width: min(800px, 80vw);
+  border-radius: 5px 5px 0 0;
+}
+
+#btnsubmit:hover {
+  background-color: #018063;
+  outline: none;
+  transform: translateY(2px);
+}
+
+#play-again {
+  width: 100%;
+  margin: 3rem auto;
+  padding: 15px;
+  background-color: #009874;
+  border: 0;
+  box-sizing: border-box;
+  cursor: pointer;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.styled-table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 25px 0;
+  font-size: 0.9em;
+  font-family: sans-serif;
+  min-width: 400px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+}
+
+.styled-table thead tr {
+  background-color: #009874;
+  color: #ffffff;
+  text-align: center;
+}
+
+.styled-table th, .styled-table td {
+  padding: 12px 15px;
+}
+
+.styled-table tbody tr {
+  border-bottom: thin solid #dddddd;
+}
+
+.styled-table tbody tr:nth-of-type(even) {
+  background-color: #f3f3f3;
+}
+
+.styled-table tbody tr:last-of-type {
+  border-bottom: 2px solid #009874;
+}
+
+.styled-table tbody tr.active-row {
+  font-weight: bold;
+  color: #009874;
+}
+
+.header {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+}
+
+.logout {
+  font-size: 1.1rem;
+  position: relative;
+  right: -4px;
+  bottom: -8px;
+  overflow: hidden;
+  letter-spacing: 2px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity .45s;
+  -webkit-transition: opacity .35s;
+}
+
+.button {
+  text-decoration: none;
+  float: right;
+  padding: 12px;
+  margin: 15px;
+  color: white;
+  width: 40px;
+  height: 40px;
+  background-color: black;
+  transition: width .35s;
+  -webkit-transition: width .35s;
+  overflow: hidden
+}
+
+a:hover {
+  width: 120px;
+  background-color: #D22730;
+}
+
+a:hover .logout {
+  opacity: .9;
+}
+
+a {
+  text-decoration: none;
+}
+
+.header h1 {
+  float: left;
+  margin: auto;
+}
+
+.header a {
+  float: right;
+  margin: auto;
+}

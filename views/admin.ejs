@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="admin.css">
+  <title>Admin - Video Games Quizz</title>
+</head>
+
+<body>
+  <h1>Video Games Quizz - Admin Page</h1><br><br>
+  <form action="/questions" class="create" method="POST">
+    <label for="imageInput">Image URL:</label><br>
+    <input type="text" name="image" id="imageInput" required><br>
+    <label for="questionInput">Question:</label><br>
+    <input type="text" name="question" id="questionInput" required><br>
+    <button type="submit" id="createButton">Create a Question</button>
+  </form>
+  <div class="questions">
+    <!-- Get source from downloaded images folder -->
+    <!-- we split the url to find the filename under which it was downloaded -->
+    <% questions.forEach(function(q) { %>
+      <% let src=q.img_url.split('/').splice(-1)[0]; %>
+        <div class="card">
+          <img src="/images/<%= src %>" alt="<%= q.name %> screenshot">
+          <div class="textDelete">
+            <h2>
+              <%= q.name %>
+            </h2>
+            <button id="<%=src%>" onclick="del_card(this.id)" type="submit" class="deleteButton"> &times; </button>
+          </div>
+        </div>
+        <% });%>
+  </div>
+</body>
+
+<script src="admin.js"></script>
+
+</html>
